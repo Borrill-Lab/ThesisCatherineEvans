@@ -1,3 +1,4 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #'31.05.21
 #'Draw graphs for qPCR data
 #'Here, NAC-5A qPCR experiment with individual samples
@@ -23,9 +24,13 @@
 #'28/07/23
 #'Make pretty graphs for thesis
 #'
+#'05/12/23
+#'Corrections: use new data from QPCR_run_me_NAPA_2023-12-05.R and QPCR_run_me_NAC5A_2023-12-05.R
+#'
 #'Built under R 4.0.5
 #'
-#'
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 #'SOURCE section
 #'Packages and source file QPCR_functions.R
 library(readr); library(readxl)
@@ -35,22 +40,20 @@ library(lubridate)
 setwd("C:/Users/evansc/OneDrive - Norwich BioScience Institutes/NAC transgenics/NAC expression R")
 source("QPCR_functions.R")
 
-#that crucial part
-gene = "NAP"
-source('C:/Users/evansc/OneDrive - Norwich BioScience Institutes/NAC transgenics/NAC expression R/Overexpression_thesis_graphs_source_2023_07_28.R', echo=TRUE)
-
-
 #'EDIT section
 #'Choose file names and parameters
 setwd("C:/Users/evansc/OneDrive - Norwich BioScience Institutes/NAC transgenics/NAC expression R")
+
+#Date is the date raw data were run through QPCR_run_me.R
+date = "2023-12-06"
 
 genotype_key <- read_excel("NAPA_genotype_key.xlsx")
 genotype_key2 <- read_excel("C:/Users/evansc/OneDrive - Norwich BioScience Institutes/NAC transgenics/NAC expression R/NAC-5A_genotype_key.xlsx")
 genotype_key <- rbind(genotype_key, genotype_key2)
 
-NAP_analysis<- read_csv("qPCR_NAPA_individual_analysis_pfaffl_2021-10-28.csv") #Pfaffl method fold_change
+NAP_analysis<- read_csv(paste("qPCR_NAPA_individual_analysis_pfaffl_", date, ".csv", sep = "")) #Pfaffl method fold_change
 
-NAC5_analysis <- read_csv("qPCR_NAC-5A_individual_analysis_pfaffl_2021-12-17.csv") #Pfaffl method fold_change
+NAC5_analysis<- read_csv(paste("qPCR_NAC5A_individual_analysis_pfaffl_", date, ".csv", sep = "")) #Pfaffl method fold_change
 
 #RUN section
 #Organise theme and font sizes
@@ -70,6 +73,13 @@ analysis_filtered <- analysis_combined %>%
   tidyr::separate(Sample_2, into = c("Line_name", "PlantNum"), sep = "-") %>%
   left_join(genotype_key, by = "Line_name")
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Run for NAP
+#Sort out the theme labels
+gene = "NAP"
+source('C:/Users/evansc/OneDrive - Norwich BioScience Institutes/NAC transgenics/NAC expression R/Overexpression_thesis_graphs_source_2023_07_28.R', echo=TRUE)
+
+# #Individual parent plants of T2 experiment
 # analysis_filtered <- analysis_filtered %>%
 #   filter(Sample %in% c("CTA5.4-9", "CTA5.4-2", "CTA10.5-6", "CTA10.5-7", "CTA10.9-5", "CTA10.9-2"))
 
@@ -92,6 +102,8 @@ boxplot_CENAP_8F_13R <- analysis_filtered %>%
   geom_boxplot(outlier.shape = NA) +
   geom_jitter() +
   scale_x_discrete(limits = line_name_limits) +
+  #tweak breaks
+  scale_y_continuous(breaks = seq(0, 10, 2)) +
   my_theme +
   genotype_scale_fill_multi +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
@@ -121,7 +133,7 @@ save_panel_svg(ggarrange(boxplot_CENAP_5F_5R, boxplot_CENAP_7F_2R, boxplot_CENAP
               n_panel_cols = 2, n_panel_rows = 2, ratio = 1.25)
 #ta da
 
-#######################################################################################
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Repeat for NAC5
 #Sort out the theme labels
 gene = "NAC-5"
@@ -138,6 +150,8 @@ boxplot_CENAP_7F_2R <- analysis_filtered %>%
   geom_boxplot(outlier.shape = NA) +
   geom_jitter() +
   scale_x_discrete(limits = line_name_limits) +
+  #tweak breaks
+  scale_y_continuous(breaks = seq(0, 10, 2)) +
   my_theme +
   genotype_scale_fill_multi +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
@@ -150,6 +164,8 @@ boxplot_CENAP_8F_13R <- analysis_filtered %>%
   geom_boxplot(outlier.shape = NA) +
   geom_jitter() +
   scale_x_discrete(limits = line_name_limits) +
+  #tweak breaks
+  scale_y_continuous(breaks = seq(0, 6, 1)) +
   my_theme +
   genotype_scale_fill_multi +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
@@ -162,6 +178,8 @@ boxplot_CENAP_5F_5R <- analysis_filtered %>%
   geom_boxplot(outlier.shape = NA) +
   geom_jitter() +
   scale_x_discrete(limits = line_name_limits) +
+  #tweak breaks
+  scale_y_continuous(breaks = seq(0, 15, 5)) +
   my_theme +
   genotype_scale_fill_multi +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
@@ -171,7 +189,6 @@ boxplot_CENAP_5F_5R
 
 #Save all my plots
 setwd("C:/Users/evansc/OneDrive - Norwich BioScience Institutes/NAC transgenics/NAC expression R")
-
 
 ggarrange(boxplot_CENAP_5F_5R, boxplot_CENAP_7F_2R, boxplot_CENAP_8F_13R)
 save_panel_svg(ggarrange(boxplot_CENAP_5F_5R, boxplot_CENAP_7F_2R, boxplot_CENAP_8F_13R), plot_name = "Expression_individual_pfaffl", gene = "NAC5",
