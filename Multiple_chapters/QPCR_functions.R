@@ -105,6 +105,7 @@ find_sd_outliers <- function(CT_values,
 #' @param qPCR_means data frame
 #' @param target target Primer
 #' @param reference reference Primer
+#' @param normalize sample to normalize against
 #' @return table containing DDCt and other columns
 analyse_ddct <- function(qPCR_means, target, reference, normalize) {
   target_means <- qPCR_means %>%
@@ -179,6 +180,51 @@ analyse_pfaffl <-
     print(head(analysis2))
     return(analysis2)
   }
+
+
+#' Calculate Fold change in expression using Pfaffl method
+#' VERSION TWO: manual input of normalization values
+#' Table containing column Means, SD, Primer, and Sample
+#' @param qPCR_means data frame
+#' @param target target Primer
+#' @param reference reference Primer
+#' @param primer_efficiencies table of primer efficiencies
+#' @param normalize_target Mean target value to normalize to 
+#' @param normalize_reference Mean reference value to normalize to
+#' @return table containing fold_change and other columns
+analyse_pfaffl_v2 <-
+  function(qPCR_means,
+           target,
+           reference,
+           primer_efficiencies,
+           normalize_target,
+           normalize_reference) {
+    target_means <- qPCR_means %>%
+      filter(Primer == target)
+    reference_means <- qPCR_means %>%
+      filter(Primer == reference)
+    analysis <-
+      left_join(reference_means, target_means, by = c("Line_name", "Sample"))
+    target_efficiency <-
+      unlist(primer_efficiencies %>% filter(X1 == target) %>% select(X2)) #choose primer efficiency values from table. These values should be around 1
+    reference_efficiency <-
+      unlist(primer_efficiencies %>% filter(X1 == reference) %>% select(X2))
+    
+    print("Target and Reference data")
+    print(head(target_means))
+    print(head(reference_means))
+    
+    #Here's the important bit.
+    analysis2 <- analysis %>% mutate(
+      target_amount = (target_efficiency + 1) ^ (Mean.y - normalize_target),
+      reference_amount = (reference_efficiency + 1) ^ (Mean.x - normalize_reference),
+      fold_change = reference_amount / target_amount,
+      log_fold_change = log(fold_change, base = exp(1))
+    )
+    print(head(analysis2))
+    return(analysis2)
+  }
+#######################################################################################################
 
 #' Generate labels for TUKEY test
 #' Ready to put on a graph
